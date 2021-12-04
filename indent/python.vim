@@ -14,19 +14,25 @@ let b:did_indent = 1
 setlocal nolisp		" Make sure lisp indenting doesn't supersede us
 setlocal autoindent	" indentexpr isn't much help otherwise
 
-setlocal indentexpr=GetPythonIndentX(v:lnum)
+setlocal indentexpr=GetPythonIndent(v:lnum)
 setlocal indentkeys+=<:>,=elif,=except
 
 let b:undo_indent = "setl ai< inde< indk< lisp<"
 
 " Only define the function once.
-if exists("*GetPythonIndentX")
+if exists("*GetPythonIndent")
   finish
 endif
 let s:keepcpo= &cpo
 set cpo&vim
 
 " Come here when loading the script the first time.
+
+" Use [black](https://github.com/psf/black) convention unless overridden
+let g:pyindent_open_paren   = get(g:, "pyindent_open_paren",   "shiftwidth()")
+let g:pyindent_nested_paren = get(g:, "pyindent_nested_paren", "shiftwidth()")
+let g:pyindent_continue     = get(g:, "pyindent_continue",     "shiftwidth()")
+let g:pyindent_close_paren  = get(g:, "pyindent_close_paren",  "-shiftwidth()")
 
 let s:maxoff = 50	" maximum number of lines to look backwards for ()
 
@@ -35,7 +41,7 @@ function s:Dedented(lnum, expected)
   return indent(a:lnum) <= a:expected - shiftwidth()
 endfunction
 
-function GetPythonIndentX(lnum)
+function GetPythonIndent(lnum)
 
   " If this line is explicitly joined: If the previous line was also joined,
   " line it up with that one, otherwise add two 'shiftwidth'
